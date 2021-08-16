@@ -41,4 +41,32 @@ pub mod card {
         }
         return str_vec.join("\n");
     }
+
+    pub fn parse(text: &str) -> (Vec<Card>, Vec<String>) {
+        let mut cards: Vec<Card> = Vec::new();
+        let mut errors: Vec<String> = Vec::new();
+
+        let lines: Vec<&str> = text.clone().lines().collect();
+
+        for line in lines {
+            let index: usize;
+            if let Some(a) = line.find(" ") {
+                index = a;
+            } else {
+                errors.push(String::from("No spaces found in line"));
+                break;
+            }
+            let quantity: i32 = match line[0..index].parse::<i32>() {
+                Ok(val) => val,
+                Err(e) => {
+                    errors.push(format!("Unable to parse quantity - {}", e));
+                    break;
+                }
+            };
+            let name: &str = &line[index+1..line.len()];
+            cards.push(Card::new(quantity, name));
+        }
+
+        return (cards, errors);
+    }
 }
