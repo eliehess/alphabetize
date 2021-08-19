@@ -1,9 +1,11 @@
 pub mod card {
     use std::fmt;
+    use std::cmp;
 
+    #[derive(Eq, Debug)]
     pub struct Card<'a> {
-        quantity: i32,
-        name: &'a str
+        name: &'a str,
+        quantity: i32
     }
 
     impl Card<'_> {
@@ -22,6 +24,14 @@ pub mod card {
         pub fn to_string(&self) -> String {
             format!("{} {}", self.quantity, self.name)
         }
+
+        pub fn compare_to(&self, other: &Card) -> cmp::Ordering {
+            return match self.name.cmp(other.name) {
+                cmp::Ordering::Greater => cmp::Ordering::Greater,
+                cmp::Ordering::Less => cmp::Ordering::Less,
+                cmp::Ordering::Equal => self.quantity.cmp(&other.quantity)
+            }
+        }
     }
 
     impl fmt::Display for Card<'_> {
@@ -30,8 +40,33 @@ pub mod card {
         }
     }
 
-    pub fn sort(list: &mut Vec<Card>) {
-        list.sort_by(|a, b| a.name.cmp(b.name));
+    impl PartialEq for Card<'_> {
+        #[inline]
+        fn eq(&self, other: &Card) -> bool {
+            self.name.eq(other.name) && self.quantity == other.quantity
+        }
+    }
+
+    impl PartialOrd for Card<'_> {
+        fn partial_cmp(&self, other: &Card) -> Option<cmp::Ordering> {
+            return match self.name.partial_cmp(other.name) {
+                Some(ord) => match ord {
+                    cmp::Ordering::Equal => self.quantity.partial_cmp(&other.quantity),
+                    _ => Some(ord)
+                }
+                None => None
+            }
+        }
+    }
+
+    impl Ord for Card<'_> {
+        fn cmp(&self, other: &Card) -> cmp::Ordering {
+            return match self.name.cmp(other.name) {
+                cmp::Ordering::Equal => self.quantity.cmp(&other.quantity),
+                cmp::Ordering::Greater => cmp::Ordering::Greater,
+                cmp::Ordering::Less => cmp::Ordering::Less
+            }
+        }
     }
 
     pub fn join(list: &Vec<Card>) -> String {
@@ -86,8 +121,8 @@ mod tests {
     fn correct_parse() {
         let (cards, errors) = parse("4 Thoughtseize\n4 Brainstorm");
         assert_eq!(cards.len(), 2);
-        assert_eq!(cards[0].get_name(), "Thoughtseize");
-        assert_eq!(cards[1].get_name(), "Brainstorm");
+        assert_eq!(cards[0], Card::new(4, "Thoughtseize"));
+        assert_eq!(cards[1], Card::new(4, "Brainstorm"));
         assert_eq!(errors.len(), 0);
     }
 
@@ -95,8 +130,8 @@ mod tests {
     fn correct_parse_with_trailing_newline() {
         let (cards, errors) = parse("4 Thoughtseize\n4 Brainstorm\n");
         assert_eq!(cards.len(), 2);
-        assert_eq!(cards[0].get_name(), "Thoughtseize");
-        assert_eq!(cards[1].get_name(), "Brainstorm");
+        assert_eq!(cards[0], Card::new(4, "Thoughtseize"));
+        assert_eq!(cards[1], Card::new(4, "Brainstorm"));
         assert_eq!(errors.len(), 0);
     }
 
@@ -104,7 +139,7 @@ mod tests {
     fn no_nums() {
         let (cards, errors) = parse("Thoughtseize\n4 Brainstorm");
         assert_eq!(cards.len(), 1);
-        assert_eq!(cards[0].get_name(), "Brainstorm");
+        assert_eq!(cards[0], Card::new(4, "Brainstorm"));
         assert_eq!(errors.len(), 1);
         assert_eq!(errors[0], String::from("No spaces found in line"));
     }
@@ -113,7 +148,7 @@ mod tests {
     fn no_spaces() {
         let (cards, errors) = parse("4Thoughtseize\n4 Brainstorm");
         assert_eq!(cards.len(), 1);
-        assert_eq!(cards[0].get_name(), "Brainstorm");
+        assert_eq!(cards[0], Card::new(4, "Brainstorm"));
         assert_eq!(errors.len(), 1);
         assert_eq!(errors[0], String::from("No spaces found in line"));
     }
@@ -130,9 +165,18 @@ mod tests {
     #[test]
     fn sorts_cards() {
         let mut cards = vec!(Card::new(4, "Thoughtseize"), Card::new(4, "Brainstorm"));
-        sort(&mut cards);
+        cards.sort();
         assert_eq!(cards.len(), 2);
-        assert_eq!(cards[0].get_name(), "Brainstorm");
-        assert_eq!(cards[1].get_name(), "Thoughtseize");
+        assert_eq!(cards[0], Card::new(4, "Brainstorm"));
+        assert_eq!(cards[1], Card::new(4, "Thoughtseize"));
+    }
+
+    #[test]
+    fn sorts_cards_mixed_case() {
+        let mut cards = vec!(Card::new(4, "thoughtseize"), Card::new(4, "Brainstorm"));
+        cards.sort();
+        assert_eq!(cards.len(), 2);
+        assert_eq!(cards[0], Card::new(4, "Brainstorm"));
+        assert_eq!(cards[1], Card::new(4, "thoughtseize"));
     }
 }

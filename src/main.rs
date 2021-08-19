@@ -19,7 +19,7 @@ fn main() {
         return;
     }
 
-    card::sort(&mut cards);
+    cards.sort();
 
     match set_clipboard(&card::join(&cards)) {
         Ok(()) => (),
@@ -36,19 +36,19 @@ fn handle_errors(errors: Vec<String>) {
 } 
 
 fn get_clipboard() -> Result<String, io::Error> {
-    return match Clipboard::new() {
+    match Clipboard::new() {
         Ok(clipboard) => clipboard.get_string(),
         Err(e) => Err(e)
-    };
+    }
 }
 
 fn set_clipboard(text: &str) -> Result<(), io::Error> {
-    return match Clipboard::new() {
+    match Clipboard::new() {
         Ok(clipboard) => 
             match clipboard.set_string(text) {
                 Ok(()) => Ok(()),
                 Err(e) => Err(e)
             },
         Err(e) => Err(e)
-    };
+    }
 }
