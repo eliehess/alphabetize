@@ -1,9 +1,11 @@
 [package]
-name = "alphabetizer_rust"
+name = "alphabetize"
 version = "0.1.0"
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+build = "build.rs"
 
 [dependencies]
 clipboard-win = "2.2.0"
+
+[build-dependencies]
+embed-resource = "1.6"

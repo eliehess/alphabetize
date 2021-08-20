@@ -1,4 +1,4 @@
-use alphabetizer_rust::card;
+use alphabetize::card;
 use clipboard_win::Clipboard;
 use std::io;
 
@@ -6,16 +6,16 @@ fn main() {
     let raw_input = match get_clipboard() {
         Ok(text) => text,
         Err(e) =>  {
-            handle_errors(vec!(format!("{}", e)));
+            handle_errors(&vec!(format!("{}", e)));
             return;
         }
     };
-    
+
     let (mut cards, mut errors) = card::parse(&raw_input);
 
     if cards.len() < 1 {
         errors.push(String::from("No cards parsed"));
-        handle_errors(errors);
+        handle_errors(&errors);
         return;
     }
 
@@ -26,14 +26,18 @@ fn main() {
         Err(e) => errors.push(format!("{}", e))
     };
 
-    handle_errors(errors);
+    if errors.len() == 0 {
+        println!("done");
+    } else {
+        handle_errors(&errors);
+    }
 }
 
-fn handle_errors(errors: Vec<String>) {
+fn handle_errors(errors: &Vec<String>) {
     for error in errors {
         println!("{}", error);
     }
-} 
+}
 
 fn get_clipboard() -> Result<String, io::Error> {
     match Clipboard::new() {
