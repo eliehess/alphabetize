@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use alphabetize::card;
 use clipboard_win::Clipboard;
 use std::io;
@@ -26,9 +28,7 @@ fn main() {
         Err(e) => errors.push(format!("{}", e))
     };
 
-    if errors.len() == 0 {
-        println!("done");
-    } else {
+    if errors.len() != 0 {
         handle_errors(&errors);
     }
 }
